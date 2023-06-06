@@ -1,2 +1,2 @@
-# Node.js-Express-with-Project
-Learn Node.js &amp; Express with Project
+# Express-MongoDB-with-Project
+This is express & mongodb rest api tutorial for contact management app
