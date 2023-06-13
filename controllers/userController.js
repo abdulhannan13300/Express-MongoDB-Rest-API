@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 //@desc Register a user
-//@route POST /api/contacts/register
+//@route POST /api/users/register
 //@access public
 const registerUser =  asyncHandler(async(req, res) => {
     const { username, email, password } = req.body;
@@ -16,17 +16,19 @@ const registerUser =  asyncHandler(async(req, res) => {
     const userAvailable = await User.findOne({ email });
     if(userAvailable) { // To check if the user s already present or not
         res.status(400);
-        throw new Error("User already exits")
+        throw new Error("User already exists")
     }
     //Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Hashed Password: ", hashedPassword)
+    //Creating the new user
     const user = await User.create({
         username,
         email,
         password: hashedPassword,
     })
     console.log(`New user created: ${user}`);
+    //Send the details to the User(just id and email)
     if (user){
         res.status(201).json({_id: user.id, email: user.email});
     } else {
@@ -38,7 +40,7 @@ const registerUser =  asyncHandler(async(req, res) => {
 })
 
 //@desc Login user
-//@route POST /api/contacts/login
+//@route POST /api/users/login
 //@access public
 const loginUser = asyncHandler(async(req,res) => {
     const { email, password } = req.body;
@@ -51,6 +53,7 @@ const loginUser = asyncHandler(async(req,res) => {
     //compare the password entered with the stored hashedpassword
     if(user && (await bcrypt.compare(password,user.password))) {
         const accessToken = jwt.sign({
+            //payload of token without password
             user: {
                 username: user.username,
                 email: user.email,
@@ -58,7 +61,7 @@ const loginUser = asyncHandler(async(req,res) => {
             },
           }, 
           process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: "1m"}
+          { expiresIn: "15m"}
         );
         res.status(200).json({ accessToken })
     } else {
@@ -69,7 +72,7 @@ const loginUser = asyncHandler(async(req,res) => {
 })
 
 //@desc Current user
-//@route GET /api/contacts/current
+//@route GET /api/users/current
 //@access private
 const currentUser = asyncHandler(async(req,res) => {
     res.json(req.user);
